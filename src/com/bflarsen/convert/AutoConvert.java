@@ -1,6 +1,8 @@
 package com.bflarsen.convert;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import com.bflarsen.convert.exceptions.AutoConverterNotRegisteredException;
+import com.bflarsen.convert.exceptions.ValueNotConvertableException;
+import jdk.internal.org.objectweb.asm.tree.analysis.Value;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -43,26 +45,26 @@ public class AutoConvert {
         }
     }
 
-    public static <T> T convert(Object value, Class<T> cls) throws Exception {
+    public static <T> T convert(Object value, Class<T> targetClass) throws Exception {
         try {
             if (value == null) {
                 return null;
             }
 
             Class sourceClass = value.getClass();
-            if (cls == value.getClass()) {
+            if (targetClass == value.getClass()) {
                 return (T) value;
             }
 
-            String targetClassName = cls.getName();
+            String targetClassName = targetClass.getName();
             String sourceClassName = sourceClass.getName();
             String autoConvertKey = sourceClassName + " to " + targetClassName;
             if (converters.containsKey(autoConvertKey)) {
                 return (T) converters.get(autoConvertKey).convert(value);
-            } else if (cls == String.class) {
+            } else if (targetClass == String.class) {
                 return (T) value.toString();
             } else {
-                throw new Exception("No AutoConverter defined for " + autoConvertKey);
+                throw new AutoConverterNotRegisteredException(targetClass, sourceClass);
             }
         }
         catch (Exception ex) {
@@ -76,19 +78,39 @@ public class AutoConvert {
     }
 
     public static Object String_To_Long(Object value) throws Exception {
-        return Long.parseLong((String)value);
+        try {
+            return Long.parseLong((String) value);
+        }
+        catch (Exception ex) {
+            throw new ValueNotConvertableException(Long.class, value, "in 'AutoConvert.String_To_Long'", ex.toString());
+        }
     }
 
     public static Object Number_To_Long(Object value) throws Exception {
-        return ((Number)value).longValue();
+        try {
+            return ((Number)value).longValue();
+        }
+        catch (Exception ex) {
+            throw new ValueNotConvertableException(Long.class, value, "in 'AutoConvert.Number_To_Long'", ex.toString());
+        }
     }
 
     public static Object String_To_Integer(Object value) throws Exception {
-        return Integer.parseInt((String)value);
+        try {
+            return Integer.parseInt((String)value);
+        }
+        catch (Exception ex) {
+            throw new ValueNotConvertableException(Integer.class, value, "in 'AutoConvert.String_To_Integer'", ex.toString());
+        }
     }
 
     public static Object Number_To_Integer(Object value) throws Exception {
-        return ((Number)value).intValue();
+        try {
+            return ((Number)value).intValue();
+        }
+        catch (Exception ex) {
+            throw new ValueNotConvertableException(Integer.class, value, "in 'AutoConvert.Number_To_Integer'", ex.toString());
+        }
     }
 
     public static Object String_To_Boolean(Object value) throws Exception {
@@ -105,11 +127,16 @@ public class AutoConvert {
             case "":
                 return false;
             default:
-                throw  new Exception ("Unable to convert String_To_Boolean('" + value + "')");
+                throw new ValueNotConvertableException(Boolean.class, value, "in 'AutoConvert.String_To_Boolean'");
         }
     }
 
     public static Object Number_To_Boolean(Object value) throws Exception {
-        return value.equals(1);
+        try {
+            return value.equals(1);
+        }
+        catch (Exception ex) {
+            throw new ValueNotConvertableException(Boolean.class, value, "in 'AutoConvert.Number_To_Boolean'", ex.toString());
+        }
     }
 }

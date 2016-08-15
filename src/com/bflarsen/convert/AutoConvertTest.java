@@ -71,8 +71,11 @@ public class AutoConvertTest extends junit.framework.TestCase {
 
         // do something that would throw an exception
         AutoConvert.convert("Not a bool", Boolean.class);
+        AutoConvert.convert("1K2jj2l", Integer.class);
 
         // verify our handler was called, and the exception didn't bubble up (if it had bubbled, we would have died on that last line.
-        assertEquals(1, exceptionsThrown.size());
+        assertEquals(2, exceptionsThrown.size());
+        assertEquals("Unable to convert 'Not a bool' to instance of 'java.lang.Boolean' in 'AutoConvert.String_To_Boolean'", exceptionsThrown.get(0).getMessage());
+        assertEquals("Unable to convert '1K2jj2l' to instance of 'java.lang.Integer' in 'AutoConvert.String_To_Integer' java.lang.NumberFormatException: For input string: \"1K2jj2l\"", exceptionsThrown.get(1).getMessage());
     }
 }
