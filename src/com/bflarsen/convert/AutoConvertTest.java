@@ -16,20 +16,21 @@ public class AutoConvertTest extends junit.framework.TestCase {
         public Integer IntValue;
     }
 
+    AutoConvert converter;
 
     @Before
     public void setUp() {
-        AutoConvert.init();
+        converter = new AutoConvert();
     }
 
     @After
     public void tearDown() {
-        AutoConvert.term();
+        converter = null;
     }
 
     public void test_convert() throws Exception {
-        assertEquals((Integer)1, AutoConvert.convert("1", Integer.class));
-        assertEquals((Boolean)true, AutoConvert.convert(1, Boolean.class));
+        assertEquals((Integer)1, converter.convert("1", Integer.class));
+        assertEquals((Boolean)true, converter.convert(1, Boolean.class));
     }
 
     public void test_fill() throws Exception {
@@ -41,7 +42,7 @@ public class AutoConvertTest extends junit.framework.TestCase {
         values.put("BoolValue", true); // convert bool to bool
         values.put("noise", "junk");  // it should ignore extra junk
 
-        AutoConvert.fill(bean, values);
+        converter.fill(bean, values);
 
         assertEquals("true", bean.StrValue);
         assertEquals(987612345L, (long)bean.LongValue);
@@ -57,7 +58,7 @@ public class AutoConvertTest extends junit.framework.TestCase {
         values.put("IntValue", null); // convert string to int
         values.put("BoolValue", "1"); // convert string to boolean
 
-        AutoConvert.fill(bean, values);
+        converter.fill(bean, values);
 
         assertEquals("5.6", bean.StrValue);
         assertEquals(-1, (long)bean.LongValue);
@@ -67,11 +68,11 @@ public class AutoConvertTest extends junit.framework.TestCase {
 
     public void test_exceptionHandler() throws Exception {
         final List<Exception> exceptionsThrown = new ArrayList<Exception>();
-        AutoConvert.ExceptionHandler = (ex) -> exceptionsThrown.add(ex);
+        converter.ExceptionHandler = (ex) -> exceptionsThrown.add(ex);
 
         // do something that would throw an exception
-        AutoConvert.convert("Not a bool", Boolean.class);
-        AutoConvert.convert("1K2jj2l", Integer.class);
+        converter.convert("Not a bool", Boolean.class);
+        converter.convert("1K2jj2l", Integer.class);
 
         // verify our handler was called, and the exception didn't bubble up (if it had bubbled, we would have died on that last line.
         assertEquals(2, exceptionsThrown.size());

@@ -2,17 +2,16 @@ package com.bflarsen.convert;
 
 import com.bflarsen.convert.exceptions.AutoConverterNotRegisteredException;
 import com.bflarsen.convert.exceptions.ValueNotConvertableException;
-import jdk.internal.org.objectweb.asm.tree.analysis.Value;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 public class AutoConvert {
-    private static Map<String, IAutoConverter> converters;
-    public static IExceptionHandler ExceptionHandler = null;
+    private final Map<String, IAutoConverter> converters;
+    public IExceptionHandler ExceptionHandler = null;
 
-    public static void init() {
+    public AutoConvert() {
         ExceptionHandler = (ex) -> { throw ex; }; // by default, let exceptions bubble up
         converters = new HashMap<>();
         addConverter(String.class, Long.class, AutoConvert::String_To_Long);
@@ -24,19 +23,14 @@ public class AutoConvert {
         addConverter(Long.class, Integer.class, AutoConvert::Number_To_Integer);
     }
 
-    public static void term() {
-        converters = null;
-        ExceptionHandler = null;
-    }
-
-    public static void fill(Object target, Map<String, Object> values) throws Exception {
+    public void fill(Object target, Map<String, Object> values) throws Exception {
         try {
             Class cls = target.getClass();
             for (Field field : cls.getFields()) {
                 String fieldName = field.getName();
                 if (values.containsKey(fieldName)) {
                     Object value = values.get(fieldName);
-                    field.set(target, AutoConvert.convert(value, field.getType()));
+                    field.set(target, convert(value, field.getType()));
                 }
             }
         }
@@ -45,7 +39,7 @@ public class AutoConvert {
         }
     }
 
-    public static <T> T convert(Object value, Class<T> targetClass) throws Exception {
+    public <T> T convert(Object value, Class<T> targetClass) throws Exception {
         try {
             if (value == null) {
                 return null;
@@ -73,7 +67,7 @@ public class AutoConvert {
         }
     }
 
-    public static void addConverter(Class<?> fromClass, Class<?> toClass, IAutoConverter converter) {
+    public void addConverter(Class<?> fromClass, Class<?> toClass, IAutoConverter converter) {
         converters.put(fromClass.getName() + " to " + toClass.getName(), converter);
     }
 
